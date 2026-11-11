@@ -1,17 +1,48 @@
 waste-organisations-smoke-tests
 
-The template to create a service that runs WDIO tests against an environment.
+Post-deployment smoke tests for the `waste-organisations` API. The suite checks that the v1 and v2 API
+documentation is served to anonymous callers: each OpenAPI document and each ReDoc page must return `200` with no
+credentials and without following redirects.
 
-- [Local](#local)
+- [What the suite checks](#what-the-suite-checks)
+  - [Target host](#target-host)
+- [Local Development](#local-development)
   - [Requirements](#requirements)
     - [Node.js](#nodejs)
   - [Setup](#setup)
   - [Running local tests](#running-local-tests)
   - [Debugging local tests](#debugging-local-tests)
 - [Production](#production)
-  - [Debugging tests](#debugging-tests)
+  - [Running the tests](#running-the-tests)
+- [Requirements of CDP Environment Tests](#requirements-of-cdp-environment-tests)
+- [Running on GitHub](#running-on-github)
+- [BrowserStack](#browserstack)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
+
+## What the suite checks
+
+| Request                         | Credentials | Expected |
+| ------------------------------- | ----------- | -------- |
+| `GET /openapi/v1.json`          | None        | `200`    |
+| `GET /openapi/v2.json`          | None        | `200`    |
+| `GET /redoc/index.html?spec=v1` | None        | `200`    |
+| `GET /redoc/index.html?spec=v2` | None        | `200`    |
+
+A redirect, any other status, a network error or a 30 second timeout fails the test. The failure message names the
+URL requested.
+
+### Target host
+
+The suite targets the public API host of the CDP environment, so requests go through the API gateway:
+
+```text
+https://waste-organisations.api.${ENVIRONMENT}.cdp-int.defra.cloud
+```
+
+CDP supplies `ENVIRONMENT`. Set `SERVICE_BASE_URL` to override the host, for example to run against a local
+instance. When `SERVICE_BASE_URL` is set, the suite uses it as the base URL and ignores `ENVIRONMENT`. When neither
+variable is set, the suite fails before it sends any request.
 
 ## Local Development
 
@@ -38,16 +69,16 @@ npm install
 
 ### Running local tests
 
-Start application you are testing on the url specified in `baseUrl` [wdio.local.conf.js](wdio.local.conf.js)
+Start the `waste-organisations` service, then point the suite at it with `SERVICE_BASE_URL`:
 
 ```bash
-npm run test:local
+SERVICE_BASE_URL=<url> npm run test:local
 ```
 
 ### Debugging local tests
 
 ```bash
-npm run test:local:debug
+SERVICE_BASE_URL=<url> npm run test:local:debug
 ```
 
 ## Production
