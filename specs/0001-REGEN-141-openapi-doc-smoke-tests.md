@@ -6,7 +6,7 @@
 | Type     | Task                                                                                          |
 | Priority | P1 (High)                                                                                     |
 | Risk     | Low                                                                                           |
-| Status   | Draft                                                                                         |
+| Status   | In progress                                                                                   |
 | Date     | 11 November 2026                                                                              |
 
 ## Problem/Opportunity
@@ -81,7 +81,7 @@ environment.
   `baseUrl` that does not exist, so leaving it in would fail every run.
 - **README:** updated to say what the suite checks, which host it targets and how to run it.
 
-Suggested location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/**/*.js` glob in
+Location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/**/*.js` glob in
 `wdio.conf.js`).
 
 - **Local run:** `wdio.local.conf.js` only matches `./test/specs/**/*.e2e.js`, so its `specs` glob is widened to
@@ -126,7 +126,12 @@ Suggested location: `test/specs/api-docs.smoke.js` (matched by the existing `./t
 - **Reachability of the public API host from CDP.** Not yet confirmed that a CDP test suite can call
   `waste-organisations.api.<env>…` through the platform proxy. The public host is required (the internal host
   bypasses the gateway), so if it is unreachable the fix is a platform change, such as a proxy allow-list entry,
-  not a change of host. Check this first.
+  not a change of host. This can only be checked after merge, because the test image is built on merge to `main`,
+  so it is checked on the first CDP Portal run.
+- **Proxy setting applies to the whole WDIO process.** `NODE_USE_ENV_PROXY=1` is set on the `wdio run` command, so
+  it covers WebdriverIO's own connection to chromedriver as well as the tests' `fetch` calls. Watch the first CDP
+  Portal run for chromedriver connection errors. If they appear, the chromedriver host needs to be excluded from
+  the proxy with `NO_PROXY`.
 - **Environments.** The suite is generic, but it asserts that the docs are anonymously viewable. Per the fix PR,
   ext-test has no documentation routes on the gateway, so the suite is expected to fail there; dev, test, perf-test
   and prod have them.
@@ -147,6 +152,6 @@ Suggested location: `test/specs/api-docs.smoke.js` (matched by the existing `./t
 
 ### Next steps
 
-1. Confirm the public API host is reachable from a CDP test suite run.
-2. Implement the four tests and remove the placeholder test and page objects.
-3. Run against DEV from the CDP Portal to confirm all four tests pass.
+1. After merge, run the suite against DEV from the CDP Portal. This confirms the public API host is reachable from
+   a CDP test suite run and that all four tests pass.
+2. On that first run, watch for chromedriver connection errors caused by the proxy setting.

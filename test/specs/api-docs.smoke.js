@@ -8,9 +8,10 @@ if (!process.env.SERVICE_BASE_URL && !process.env.ENVIRONMENT) {
   )
 }
 
-const baseUrl =
+const baseUrl = (
   process.env.SERVICE_BASE_URL ||
   `https://waste-organisations.api.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`
+).replace(/\/+$/, '')
 
 async function fetchStatus(url) {
   try {
