@@ -41,8 +41,9 @@ https://waste-organisations.api.${ENVIRONMENT}.cdp-int.defra.cloud
 ```
 
 CDP supplies `ENVIRONMENT`. Set `SERVICE_BASE_URL` to override the host, for example to run against a local
-instance. When `SERVICE_BASE_URL` is set, the suite uses it as the base URL and ignores `ENVIRONMENT`. When neither
-variable is set, the suite fails before it sends any request.
+instance. When `SERVICE_BASE_URL` is set, the suite uses its scheme and host and ignores `ENVIRONMENT`; any
+path on it is ignored. When neither variable is set, or `SERVICE_BASE_URL` is not a valid URL, the suite fails before
+it sends any request.
 
 ## Local Development
 

@@ -58,7 +58,9 @@ environment.
   the bug was a gateway `401`, which the internal service host would not have reproduced.
 - **Any environment:** the host is derived from the `ENVIRONMENT` variable supplied by CDP, so the same image runs
   unchanged in every environment. An optional override variable, `SERVICE_BASE_URL`, allows a run against a
-  local instance. When it is set, it is used as the base URL in full and `ENVIRONMENT` is ignored.
+  local instance. When it is set, `ENVIRONMENT` is ignored. Request URLs are resolved against the base with the `URL` class, so
+  only its scheme and host are used: a trailing slash is harmless, any path on it is ignored, and an invalid
+  value fails the suite before any request is made.
   When neither variable is set, the suite fails before any request is made, with an error that names both
   variables, instead of calling an `undefined` host.
 - **Trigger:** the suite is started manually from the CDP Portal (Test Suites). See Notes for automation.
