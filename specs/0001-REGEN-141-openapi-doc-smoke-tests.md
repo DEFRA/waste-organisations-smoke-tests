@@ -57,8 +57,10 @@ environment.
   the bug report, so the tests go through the API gateway as an anonymous consumer does. This is a firm decision:
   the bug was a gateway `401`, which the internal service host would not have reproduced.
 - **Any environment:** the host is derived from the `ENVIRONMENT` variable supplied by CDP, so the same image runs
-  unchanged in every environment. An optional override variable (e.g. `SERVICE_BASE_URL`) allows a run against a
-  local instance.
+  unchanged in every environment. An optional override variable, `SERVICE_BASE_URL`, allows a run against a
+  local instance. When it is set, it is used as the base URL in full and `ENVIRONMENT` is ignored.
+  When neither variable is set, the suite fails before any request is made, with an error that names both
+  variables, instead of calling an `undefined` host.
 - **Trigger:** the suite is started manually from the CDP Portal (Test Suites). See Notes for automation.
 - **Anonymous:** no `Authorization` header, API key or cookies are sent.
 - **No redirects followed:** a redirect (for example to a login page) fails the test instead of passing as a `200`.
@@ -68,14 +70,23 @@ environment.
   runner. No new dependency. Allure reporting, the `FAILED` file written in `onComplete`, `entrypoint.sh` and
   `bin/publish-tests.sh` stay as they are, so the suite keeps meeting the CDP Portal contract.
 - **Proxy:** outbound calls from CDP go through `HTTP_PROXY`. Node's `fetch` only honours it when
-  `NODE_USE_ENV_PROXY=1` is set, so the `test` script must set it (as `test:browserstack` already does).
+  `NODE_USE_ENV_PROXY=1` is set, so the `test` script must set it. The variable must prefix the `wdio run`
+  command itself, not the preceding `npm run clean`, otherwise it never reaches the test process.
+- **Failure semantics:** each request uses `redirect: 'manual'` and a 30 second `AbortSignal.timeout`. A `3xx`
+  status, a non-`200` status, a timeout and a network error all fail the test with a message that names the URL.
+  Assertions use `node:assert/strict` so the message is under the test's control.
 - **Extensible:** the doc versions are held in one list, so adding v3 is a one-line change.
 - **Placeholder removed:** the CDP template's home-page test (`test/specs/home.e2e.js`) and its page objects
   (`test/page-objects/home.page.js`, `test/page-objects/page.js`) are deleted. The test opens a placeholder
   `baseUrl` that does not exist, so leaving it in would fail every run.
 - **README:** updated to say what the suite checks, which host it targets and how to run it.
 
-Suggested location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/**/*.js` glob).
+Suggested location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/**/*.js` glob in
+`wdio.conf.js`).
+
+- **Local run:** `wdio.local.conf.js` only matches `./test/specs/**/*.e2e.js`, so its `specs` glob is widened to
+  `./test/specs/**/*.js` to match `wdio.conf.js`. A local run is `SERVICE_BASE_URL=<url> npm run test:local`; the
+  `test` script needs a remote chromedriver and is for CDP. No other WDIO config changes.
 
 ## Acceptance Criteria
 
