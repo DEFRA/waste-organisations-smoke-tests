@@ -11,12 +11,9 @@ credentials and without following redirects.
     - [Node.js](#nodejs)
   - [Setup](#setup)
   - [Running local tests](#running-local-tests)
-  - [Debugging local tests](#debugging-local-tests)
 - [Production](#production)
   - [Running the tests](#running-the-tests)
 - [Requirements of CDP Environment Tests](#requirements-of-cdp-environment-tests)
-- [Running on GitHub](#running-on-github)
-- [BrowserStack](#browserstack)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
@@ -70,16 +67,17 @@ npm install
 
 ### Running local tests
 
-Start the `waste-organisations` service, then point the suite at it with `SERVICE_BASE_URL`:
+Point the suite at a running `waste-organisations` service with `SERVICE_BASE_URL`:
 
 ```bash
-SERVICE_BASE_URL=<url> npm run test:local
+SERVICE_BASE_URL=<url> npm test
 ```
 
-### Debugging local tests
+The tests are plain HTTP requests run with [Mocha](https://mochajs.org/); no browser is involved. To build the
+Allure report from the results (needs a Java runtime):
 
 ```bash
-SERVICE_BASE_URL=<url> npm run test:local:debug
+npm run report
 ```
 
 ## Production
@@ -100,29 +98,6 @@ The results of the test run are made available in the portal.
 2. The Dockerfile's entrypoint script should return exit code of 0 if the test suite passes or 1/>0 if it fails
 
 3. Test reports should be published to S3 using the script in `./bin/publish-tests.sh`
-
-## Running on GitHub
-
-Alternatively you can run the test suite as a GitHub workflow.
-Test runs on GitHub are not able to connect to the CDP Test environments. Instead, they run the tests agains a version of the services running in docker.
-A docker compose `compose.yml` is included as a starting point, which includes the databases (mongodb, redis) and infrastructure (localstack) pre-setup.
-
-Steps:
-
-1. Edit the compose.yml to include your services.
-2. Modify the scripts in docker/scripts to pre-populate the database, if required and create any localstack resources.
-3. Test the setup locally with `docker compose up` and `npm run test:github`
-4. Set up the workflow trigger in `.github/workflows/journey-tests`.
-
-By default, the provided workflow will run when triggered manually from GitHub or when triggered by another workflow.
-
-If you want to use the repository exclusively for running docker composed based test suites consider displaying the publish.yml workflow.
-
-## BrowserStack
-
-Two wdio configuration files are provided to help run the tests using BrowserStack in both a GitHub workflow (`wdio.github.browserstack.conf.js`) and from the CDP Portal (`wdio.browserstack.conf.js`).
-They can be run from npm using the `npm run test:browserstack` (for running via portal) and `npm run test:github:browserstack` (from GitHib runner).
-See the CDP Documentation for more details.
 
 ## Licence
 

@@ -68,11 +68,13 @@ environment.
 - **No redirects followed:** a redirect (for example to a login page) fails the test instead of passing as a `200`.
 - **One test case per URL**, so the report shows exactly which document or page failed. A failure message includes
   the URL requested and the status received.
-- **Plain HTTP, no browser:** the tests use Node's built-in `fetch` (Node 24) inside the existing WDIO/Mocha
-  runner. No new dependency. Allure reporting, the `FAILED` file written in `onComplete`, `entrypoint.sh` and
-  `bin/publish-tests.sh` stay as they are, so the suite keeps meeting the CDP Portal contract.
+- **Plain HTTP, no browser:** the tests use Node's built-in `fetch` (Node 24) and run with Mocha, configured in
+  `.mocharc.json`. The CDP template's browser test tooling is removed, as nothing here drives a browser.
+- **CDP Portal contract:** the `allure-mocha` reporter writes `allure-results`, and `bin/publish-tests.sh` still
+  publishes the Allure report to S3. `entrypoint.sh` exits non-zero when the test run fails, using the exit code
+  of `npm test`.
 - **Proxy:** outbound calls from CDP go through `HTTP_PROXY`. Node's `fetch` only honours it when
-  `NODE_USE_ENV_PROXY=1` is set, so the `test` script must set it. The variable must prefix the `wdio run`
+  `NODE_USE_ENV_PROXY=1` is set, so the `test` script must set it. The variable must prefix the `mocha`
   command itself, not the preceding `npm run clean`, otherwise it never reaches the test process.
 - **Failure semantics:** each request uses `redirect: 'manual'` and a 30 second `AbortSignal.timeout`. A `3xx`
   status, a non-`200` status, a timeout and a network error all fail the test with a message that names the URL.
@@ -83,12 +85,10 @@ environment.
   `baseUrl` that does not exist, so leaving it in would fail every run.
 - **README:** updated to say what the suite checks, which host it targets and how to run it.
 
-Location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/**/*.js` glob in
-`wdio.conf.js`).
+Location: `test/specs/api-docs.js` (matched by the `test/specs/**/*.js` glob in `.mocharc.json`). Test file names
+carry no `.smoke` suffix, since every test in this repository is a smoke test.
 
-- **Local run:** `wdio.local.conf.js` only matches `./test/specs/**/*.e2e.js`, so its `specs` glob is widened to
-  `./test/specs/**/*.js` to match `wdio.conf.js`. A local run is `SERVICE_BASE_URL=<url> npm run test:local`; the
-  `test` script needs a remote chromedriver and is for CDP. No other WDIO config changes.
+- **Local run:** the same `test` script is used locally and on CDP: `SERVICE_BASE_URL=<url> npm test`.
 
 ## Acceptance Criteria
 
@@ -116,9 +116,9 @@ Location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/
 - Functional or contract testing of the API (payloads, validation, auth rules, versioning behaviour).
 - Validating the content of the OpenAPI documents or the rendered ReDoc page.
 - Running the suite automatically after each deployment; a manual run from the CDP Portal is enough.
-- Changing the template's GitHub workflow (`journey-tests.yml`, `run-journey-tests/`, `compose.yml`). It is kept
-  as it is and is not required to run these tests.
-- Other template clean-up beyond the placeholder test and its page objects (for example the BrowserStack configs).
+- Running the tests from a GitHub workflow. The template's docker-compose based workflow (`journey-tests.yml`,
+  `run-journey-tests/`, `compose.yml`, `docker/`) is removed: it existed to run browser tests against a local
+  stack, and GitHub runners cannot reach the CDP environments.
 - Further smoke checks such as `/health` or an unauthenticated `GET /organisations` returning `401`.
 
 ## Notes
@@ -130,18 +130,12 @@ Location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/
   bypasses the gateway), so if it is unreachable the fix is a platform change, such as a proxy allow-list entry,
   not a change of host. This can only be checked after merge, because the test image is built on merge to `main`,
   so it is checked on the first CDP Portal run.
-- **Proxy setting applies to the whole WDIO process.** `NODE_USE_ENV_PROXY=1` is set on the `wdio run` command, so
-  it covers WebdriverIO's own connection to chromedriver as well as the tests' `fetch` calls. Watch the first CDP
-  Portal run for chromedriver connection errors. If they appear, the chromedriver host needs to be excluded from
-  the proxy with `NO_PROXY`.
 - **Environments.** The suite is generic, but it asserts that the docs are anonymously viewable. Per the fix PR,
   ext-test has no documentation routes on the gateway, so the suite is expected to fail there; dev, test, perf-test
   and prod have them.
 - **Each new API version needs its own gateway route.** Anonymous access is granted per document in
   `cdp-tenant-config`, so a future `/openapi/v3.json` will return `401` until a route is added. Adding v3 to the
   test list is what would catch that.
-- **Browser session.** The WDIO runner still starts a Chrome session even though the tests do not use it, and
-  `afterTest` takes a screenshot on failure. Harmless, but the screenshot is of a blank page.
 
 ### Running and automating on CDP
 
@@ -149,11 +143,9 @@ Location: `test/specs/api-docs.smoke.js` (matched by the existing `./test/specs/
   existing `.github/workflows/publish.yml` builds and publishes the image on merge to `main`.
 - Triggering a run automatically after a `waste-organisations` deployment is a CDP Portal setting, not something
   this repository can configure. To be confirmed against the CDP documentation if automation is wanted later.
-- The repository's own GitHub workflow cannot stand in for it: per the README, GitHub runners cannot connect to
-  the CDP environments.
+- A GitHub workflow cannot stand in for it: GitHub runners cannot connect to the CDP environments.
 
 ### Next steps
 
 1. After merge, run the suite against DEV from the CDP Portal. This confirms the public API host is reachable from
    a CDP test suite run and that all four tests pass.
-2. On that first run, watch for chromedriver connection errors caused by the proxy setting.
