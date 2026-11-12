@@ -106,15 +106,30 @@ Test runs on GitHub cannot connect to the CDP environments. Instead, the pull re
 published `waste-organisations` image with [compose.yml](compose.yml) and runs the suite against it. This checks
 the service itself; requests do not go through the API gateway.
 
+The stack is the service, MongoDB and Postgres. Liquibase applies the service's Postgres schema, which is the
+`changelog/` folder of the [waste-organisations](https://github.com/DEFRA/waste-organisations) repository.
+
 To do the same locally:
 
 ```bash
-docker compose up --wait -d
-npm run test:github
-docker compose down
+npm run stack:up
 ```
 
-Set `WASTE_ORGANISATIONS` to test a specific image tag, for example `WASTE_ORGANISATIONS=0.136.0`.
+```bash
+npm run test:github
+```
+
+```bash
+npm run stack:down
+```
+
+`npm run stack:up` fetches the changelog into `.waste-organisations/` before starting the containers. Two variables
+change what is tested:
+
+| Variable                        | Effect                                                                                                                                    |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `WASTE_ORGANISATIONS`           | Image tag to test, for example `0.136.0`. The changelog is fetched at the same tag. Defaults to `latest`, with the changelog from `main`. |
+| `WASTE_ORGANISATIONS_CHANGELOG` | Path to a changelog folder to use as it is, for example `../waste-organisations/changelog`. Nothing is fetched.                           |
 
 ## Licence
 

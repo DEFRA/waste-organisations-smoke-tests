@@ -13,6 +13,8 @@
     "clean": "rm -rf allure-results && rm -rf allure-report && rm -f FAILED",
     "test": "npm run clean && (NODE_USE_ENV_PROXY=1 mocha || (echo 'test run failed' > FAILED && exit 1))",
     "test:github": "SERVICE_BASE_URL=http://localhost:8080 npm test",
+    "stack:up": "./bin/start-stack.sh",
+    "stack:down": "docker compose down --volumes",
     "format": "prettier --write 'test/**/*.js' '**/*.{js,md,json,config.js}'",
     "format:check": "prettier --check 'test/**/*.js' '**/*.{js,md,json,config.js}'",
     "git:pre-commit-hook": "npm run format:check && npm run lint",

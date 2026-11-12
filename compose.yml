@@ -2,16 +2,16 @@
 # Docker Compose file for starting up the service for testing in GitHub workflow
 # This provides the infrastructure the waste-organisations service needs:
 #   - mongodb
-#   - postgres
+#   - postgres, with the schema applied by liquibase
 #
 # The service being tested is started here using the latest build from
 # dockerhub. It has a .env config file in docker/config/
 # Services can reference each other by their container names.
 # e.g. http://waste-organisations:8080/
 #
-# The smoke tests only need the service to be up and serving its API docs, so
-# the Postgres schema (the Liquibase changelog in the service repository) is not
-# applied here.
+# The Postgres schema is the Liquibase changelog in the waste-organisations
+# repository. Start the stack with `npm run stack:up`, which fetches the
+# changelog first, or set WASTE_ORGANISATIONS_CHANGELOG to a changelog folder.
 ################################################################################
 services:
 
@@ -38,6 +38,27 @@ services:
       retries: 10
 
 ################################################################################
+# Applies the changelog to postgres once and exits; the service waits for it.
+  liquibase:
+    build:
+      # The image has no PostgreSQL JDBC driver, so it is added here.
+      dockerfile_inline: |
+        FROM liquibase/liquibase:5.0.4
+        RUN lpm add postgresql --global
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://postgres:5432/waste_organisations
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=postgres
+      - LIQUIBASE_COMMAND_CHANGELOG_FILE=db.changelog.xml
+    volumes:
+      - ${WASTE_ORGANISATIONS_CHANGELOG:-./.waste-organisations/changelog}:/liquibase/changelog
+    command: update
+    restart: "no"
+
+################################################################################
 #
 # The service being tested.
 #
@@ -54,8 +75,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
+      liquibase:
+        condition: service_completed_successfully
     ports:
       - 8080:8080
     healthcheck:

@@ -22,9 +22,9 @@ runs:
       shell: bash
     - name: Start docker compose
       shell: bash
-      run: |
-        WASTE_ORGANISATIONS=${{ inputs.waste-organisations }} \
-        docker compose up --wait --wait-timeout 300 -d --quiet-pull
+      env:
+        WASTE_ORGANISATIONS: ${{ inputs.waste-organisations }}
+      run: npm run stack:up
     - name: Run the tests
       shell: bash
       run: npm run test:github

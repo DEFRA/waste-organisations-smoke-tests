@@ -90,8 +90,10 @@ Location: `test/specs/api-docs.js` (matched by the `test/specs/**/*.js` glob in 
 - **Local run:** the same `test` script is used locally and on CDP: `SERVICE_BASE_URL=<url> npm test`.
 - **Pull request check:** GitHub runners cannot reach the CDP environments, so the pull request workflow starts the
   published `defradigital/waste-organisations` image with `compose.yml` (plus MongoDB and Postgres) and runs the
-  tests against `http://localhost:8080` with `npm run test:github`. The Postgres schema is not applied, as the doc
-  endpoints do not need it. There is no API gateway in this stack, so it proves the service serves the docs but
+  tests against `http://localhost:8080` with `npm run test:github`. Liquibase applies the Postgres schema, so the
+  stack is ready for later tests that read data. The schema is the `changelog/` folder of the service repository;
+  `npm run stack:up` fetches it at the version of the image under test, or uses the folder named by
+  `WASTE_ORGANISATIONS_CHANGELOG`. There is no API gateway in this stack, so it proves the service serves the docs but
   would not catch a gateway fault like the one that prompted this work; the CDP Portal run covers that.
 
 ## Acceptance Criteria
