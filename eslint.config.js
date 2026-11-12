@@ -6,7 +6,7 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat'
 
 export default defineConfig([
   {
-    ignores: ['allure-results/', 'allure-report/']
+    ignores: ['allure-results/', 'allure-report/', 'docker/']
   },
 
   js.configs.recommended,
