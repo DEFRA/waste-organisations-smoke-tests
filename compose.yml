@@ -1,108 +1,86 @@
 ################################################################################
 # Docker Compose file for starting up the service for testing in GitHub workflow
-# This template provides comparable infrastructure to the real environment.
+# This provides the infrastructure the waste-organisations service needs:
 #   - mongodb
-#   - redis
-#   - localstack (s3, sqs, sns)
+#   - postgres, with the schema applied by liquibase
 #
-# Both mongo and localstack have init scripts included for setting up resources
-# on startup. These scripts are in docker/scripts.
-#
-# It also includes a selenium-chrome container for running the browser headless.
-#
-# The services being tested can either be started up here using the latest
-# builds from dockerhub.
-# In the example each service has a .env config file in docker/config/
+# The service being tested is started here using the latest build from
+# dockerhub. It has a .env config file in docker/config/
 # Services can reference each other by their container names.
-# e.g. http://cdp-example-node-backend:3001/
+# e.g. http://waste-organisations:8080/
 #
+# The Postgres schema is the Liquibase changelog in the waste-organisations
+# repository. Start the stack with `npm run stack:up`, which fetches the
+# changelog first, or set WASTE_ORGANISATIONS_CHANGELOG to a changelog folder.
 ################################################################################
 services:
 
 ################################################################################
-# Headless browser, used by the test suite to actually run the tests against the
-# containers.
-  selenium-chrome:
-    image: selenium/standalone-chrome:123.0
-    ports:
-      - 4444:4444
-
-################################################################################
   mongodb:
-    image: mongo:6
-    volumes:
-      - ./docker/scripts/mongodb:/docker-entrypoint-initdb.d
+    image: mongo:7
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.hello().ok"]
       interval: 5s
       start_period: 5s
       retries: 3
+
 ################################################################################
-  localstack:
-    image: localstack/localstack:3.2.0
+  postgres:
+    image: postgres:16-alpine
     environment:
-      - LOCALSTACK_HOST=127.0.0.1
-      - SERVICES=s3,sqs,sns,dynamodb
-      - LS_LOG=WARN
-    env_file:
-      - ./docker/config/defaults.env
-    volumes:
-      - ./docker/scripts/localstack:/etc/localstack/init/ready.d
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=waste_organisations
     healthcheck:
-      test: ["CMD", "curl", "localhost:4566"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d waste_organisations"]
       interval: 5s
       start_period: 5s
-      retries: 3
+      retries: 10
 
 ################################################################################
-  redis:
-    image: redis:7
-    restart: always
+# Applies the changelog to postgres once and exits; the service waits for it.
+  liquibase:
+    build:
+      # The image has no PostgreSQL JDBC driver, so it is added here.
+      dockerfile_inline: |
+        FROM liquibase/liquibase:5.0.4
+        RUN lpm add postgresql --global
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://postgres:5432/waste_organisations
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=postgres
+      - LIQUIBASE_COMMAND_CHANGELOG_FILE=db.changelog.xml
+    volumes:
+      - ${WASTE_ORGANISATIONS_CHANGELOG:-./.waste-organisations/changelog}:/liquibase/changelog
+    command: update
+    restart: "no"
+
+################################################################################
+#
+# The service being tested.
+#
+################################################################################
+  waste-organisations:
+    image: defradigital/waste-organisations:${WASTE_ORGANISATIONS:-latest}
+    # Always pull, so a stale local copy of the tag is never tested.
+    pull_policy: always
+    env_file:
+      - ./docker/config/defaults.env
+      - ./docker/config/waste-organisations.env
+    environment:
+      - PORT=8080
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      liquibase:
+        condition: service_completed_successfully
+    ports:
+      - 8080:8080
     healthcheck:
-      test: [ "CMD", "redis-cli", "PING" ]
-      interval: 5s
-      start_period: 2s
-      retries: 5
-
-
-################################################################################
-#
-# Add the services you want to test below.
-#
-################################################################################
-#  cdp-example-node-frontend:
-#    image: defradigital/cdp-example-node-frontend:${CDP_EXAMPLE_NODE_FRONTEND:-latest}
-#    env_file:
-#      - ./docker/config/defaults.env
-#      - ./docker/config/example-frontend.env
-#    environment:
-#      - PORT=3000
-#    depends_on:
-#      cdp-example-node-backend:
-#        condition: service_started
-#      redis:
-#        condition: service_healthy
-#    ports:
-#      - 3000:3000
-#    healthcheck:
-#      test: ["CMD", "curl", "http://localhost:3000/health"]
-#      interval: 3s
-#      start_period: 2s
-#      retries: 3
-
-################################################################################
-# cdp-example-node-backend:
-#   image: defradigital/cdp-example-node-backend:${CDP_EXAMPLE_NODE_BACKEND:-latest}
-#   env_file:
-#     - ./docker/config/defaults.env
-#     - ./docker/config/example-backend.env
-#   environment:
-#     - PORT=3001
-#   depends_on:
-#     mongodb:
-#       condition: service_healthy
-#   healthcheck:
-#     test: ["CMD", "curl", "http://localhost:3001/health"]
-#     interval: 3s
-#     start_period: 2s
-#     retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 3s
+      start_period: 5s
+      retries: 10
