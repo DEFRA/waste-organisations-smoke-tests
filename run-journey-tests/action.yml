@@ -2,7 +2,8 @@ name: Run Journey Tests on GitHub
 
 description: >
   Starts the waste-organisations service with docker compose and runs the smoke tests against it.
-  The repository must already be checked out.
+  This repository (waste-organisations-smoke-tests) must already be checked out; the service itself is pulled as a
+  Docker image.
 
 inputs:
   waste-organisations:
