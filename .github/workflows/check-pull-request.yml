@@ -27,3 +27,7 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
+
+  tests:
+    name: Run Journey Tests
+    uses: ./.github/workflows/journey-tests.yml

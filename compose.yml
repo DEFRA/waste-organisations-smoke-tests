@@ -1,0 +1,52 @@
+################################################################################
+# Docker Compose file for starting the waste-organisations service for testing
+# in a GitHub workflow, where the CDP environments cannot be reached.
+#
+# The smoke tests only need the service to be up and serving its API docs, so
+# the Postgres schema (the Liquibase changelog in the service repository) is not
+# applied here.
+################################################################################
+services:
+  mongodb:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.hello().ok"]
+      interval: 5s
+      start_period: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: waste_organisations
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d waste_organisations"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  waste-organisations:
+    image: defradigital/waste-organisations:${WASTE_ORGANISATIONS:-latest}
+    # Always pull, so a stale local copy of the tag is never tested.
+    pull_policy: always
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Mongo__DatabaseUri: mongodb://mongodb:27017/
+      Postgres__DefaultHost: postgres
+      PORT: 8080
+      AWS_EMF_ENVIRONMENT: Local
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s

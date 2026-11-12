@@ -71,8 +71,8 @@ environment.
 - **Plain HTTP, no browser:** the tests use Node's built-in `fetch` (Node 24) and run with Mocha, configured in
   `.mocharc.json`. The CDP template's browser test tooling is removed, as nothing here drives a browser.
 - **CDP Portal contract:** the `allure-mocha` reporter writes `allure-results`, and `bin/publish-tests.sh` still
-  publishes the Allure report to S3. `entrypoint.sh` exits non-zero when the test run fails, using the exit code
-  of `npm test`.
+  publishes the Allure report to S3. `entrypoint.sh` is unchanged from the CDP template: it fails the run when a
+  `FAILED` file exists, so the `test` script writes that file whenever Mocha exits with a failure.
 - **Proxy:** outbound calls from CDP go through `HTTP_PROXY`. Node's `fetch` only honours it when
   `NODE_USE_ENV_PROXY=1` is set, so the `test` script must set it. The variable must prefix the `mocha`
   command itself, not the preceding `npm run clean`, otherwise it never reaches the test process.
@@ -85,10 +85,14 @@ environment.
   `baseUrl` that does not exist, so leaving it in would fail every run.
 - **README:** updated to say what the suite checks, which host it targets and how to run it.
 
-Location: `test/specs/api-docs.js` (matched by the `test/specs/**/*.js` glob in `.mocharc.json`). Test file names
-carry no `.smoke` suffix, since every test in this repository is a smoke test.
+Location: `test/specs/api-docs.js` (matched by the `test/specs/**/*.js` glob in `.mocharc.json`).
 
 - **Local run:** the same `test` script is used locally and on CDP: `SERVICE_BASE_URL=<url> npm test`.
+- **Pull request check:** GitHub runners cannot reach the CDP environments, so the pull request workflow starts the
+  published `defradigital/waste-organisations` image with `compose.yml` (plus MongoDB and Postgres) and runs the
+  tests against `http://localhost:8080` with `npm run test:github`. The Postgres schema is not applied, as the doc
+  endpoints do not need it. There is no API gateway in this stack, so it proves the service serves the docs but
+  would not catch a gateway fault like the one that prompted this work; the CDP Portal run covers that.
 
 ## Acceptance Criteria
 
@@ -116,9 +120,6 @@ carry no `.smoke` suffix, since every test in this repository is a smoke test.
 - Functional or contract testing of the API (payloads, validation, auth rules, versioning behaviour).
 - Validating the content of the OpenAPI documents or the rendered ReDoc page.
 - Running the suite automatically after each deployment; a manual run from the CDP Portal is enough.
-- Running the tests from a GitHub workflow. The template's docker-compose based workflow (`journey-tests.yml`,
-  `run-journey-tests/`, `compose.yml`, `docker/`) is removed: it existed to run browser tests against a local
-  stack, and GitHub runners cannot reach the CDP environments.
 - Further smoke checks such as `/health` or an unauthenticated `GET /organisations` returning `401`.
 
 ## Notes
@@ -143,7 +144,7 @@ carry no `.smoke` suffix, since every test in this repository is a smoke test.
   existing `.github/workflows/publish.yml` builds and publishes the image on merge to `main`.
 - Triggering a run automatically after a `waste-organisations` deployment is a CDP Portal setting, not something
   this repository can configure. To be confirmed against the CDP documentation if automation is wanted later.
-- A GitHub workflow cannot stand in for it: GitHub runners cannot connect to the CDP environments.
+- The GitHub pull request check cannot stand in for it: GitHub runners cannot connect to the CDP environments.
 
 ### Next steps
 

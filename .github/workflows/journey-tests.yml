@@ -1,0 +1,15 @@
+name: Run Journey Tests on GitHub
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  workflow_call:
+jobs:
+  build:
+    name: Run Journey Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./run-journey-tests

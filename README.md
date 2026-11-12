@@ -14,6 +14,7 @@ credentials and without following redirects.
 - [Production](#production)
   - [Running the tests](#running-the-tests)
 - [Requirements of CDP Environment Tests](#requirements-of-cdp-environment-tests)
+- [Running on GitHub](#running-on-github)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
@@ -98,6 +99,22 @@ The results of the test run are made available in the portal.
 2. The Dockerfile's entrypoint script should return exit code of 0 if the test suite passes or 1/>0 if it fails
 
 3. Test reports should be published to S3 using the script in `./bin/publish-tests.sh`
+
+## Running on GitHub
+
+Test runs on GitHub cannot connect to the CDP environments. Instead, the pull request check starts the latest
+published `waste-organisations` image with [compose.yml](compose.yml) and runs the suite against it. This checks
+the service itself; requests do not go through the API gateway.
+
+To do the same locally:
+
+```bash
+docker compose up --wait -d
+npm run test:github
+docker compose down
+```
+
+Set `WASTE_ORGANISATIONS` to test a specific image tag, for example `WASTE_ORGANISATIONS=0.136.0`.
 
 ## Licence
 
