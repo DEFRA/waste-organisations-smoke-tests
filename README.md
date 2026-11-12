@@ -17,6 +17,7 @@ credentials and without following redirects.
 - [Requirements of CDP Environment Tests](#requirements-of-cdp-environment-tests)
 - [Running on GitHub](#running-on-github)
 - [BrowserStack](#browserstack)
+- [Branching and contributing](#branching-and-contributing)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
@@ -122,6 +123,25 @@ If you want to use the repository exclusively for running docker composed based 
 Two wdio configuration files are provided to help run the tests using BrowserStack in both a GitHub workflow (`wdio.github.browserstack.conf.js`) and from the CDP Portal (`wdio.browserstack.conf.js`).
 They can be run from npm using the `npm run test:browserstack` (for running via portal) and `npm run test:github:browserstack` (from GitHib runner).
 See the CDP Documentation for more details.
+
+## Branching and contributing
+
+Work follows GitHub flow: every change is made on a short-lived branch named after its Jira story
+(`REGEN-NNN-short-slug`), opened as a pull request titled `REGEN-NNN: summary` (work with no Jira story takes no
+key), approved by one reviewer (the repository ruleset enforces this) and squash-merged into `main`, which is always
+shippable. The pull request template ([.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md)) asks for
+a "How to test" section so QA or another developer can verify the change without reading the code.
+
+The rules every developer and AI coding tool follows are in [AGENTS.md](AGENTS.md), with the DEFRA software
+development standards adapted for this repo in [doc/rules](doc/rules/). Reusable procedures live in
+[.agents/skills](.agents/skills/) and work in Claude Code and Codex:
+
+- [spec-clarify](.agents/skills/spec-clarify/README.md): turn a Jira story into a spec in `specs/`, the first step
+  of every story
+- [pr-preflight](.agents/skills/pr-preflight/README.md): check your own pull request before asking for review
+- [pr-review](.agents/skills/pr-review/README.md): review a colleague's pull request against its story and these
+  rules
+- `commit`: commit with Conventional Commits messages
 
 ## Licence
 
