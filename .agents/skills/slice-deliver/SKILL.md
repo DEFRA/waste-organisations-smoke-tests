@@ -73,9 +73,9 @@ stage 1 asks.
 - **Stop means stop.** Report in the stop format below and end the turn. Do not look for another
   route round a failed step.
 
-If your tool sandboxes commands, `slice.sh run`, `gh` and a suite run have to leave the sandbox:
-ralph starts its own agents and all three use the network. Ask for that escalation; do not work
-round it.
+If your tool sandboxes commands, `slice.sh run`, `gh` and the suite run have to leave the sandbox:
+ralph starts its own agents, and all three use the network or Docker. Ask for that escalation; do
+not work round it.
 
 ## The script
 
@@ -140,11 +140,8 @@ than `blocker=branch`, which the choice of branch below may resolve.
      story, so the developer checks that branch out or removes it.
 
 3. **Warnings** do not stop the run; keep them for the report. Never rebase or merge to clear one.
-4. **The service for the suite run.** When `slice_work` names a check, the runner, `package.json`
-   or `entrypoint.sh`, stage 4 needs a running `waste-organisations`. If the request does not give
-   its base URL, ask for it now, while nothing has changed.
-5. `probe`. A failure means ralph could not start an agent: stop with the detail it prints.
-6. `run <spec> <slice> <base>`. For `main` or a branch name it first makes `slice_branch` from that
+4. `probe`. A failure means ralph could not start an agent: stop with the detail it prints.
+5. `run <spec> <slice> <base>`. For `main` or a branch name it first makes `slice_branch` from that
    base and switches to it; it refuses when the tree is not clean or the base does not hold the
    spec. Tell the developer in one line which branch the slice is on, that ralph has started and
    can take an hour or more, and where the log is.
@@ -174,17 +171,16 @@ that would need editing, or an acceptance criterion that cannot be met without a
    `git diff --stat <base>...HEAD` for a stacked slice (`base` is a branch name). A change to a
    delivered spec, or a check or an assertion removed, weakened or skipped, that the slice's Work
    or Verified by cell does not name is a stop.
-2. Run the gate exactly as `AGENTS.md` gives it, in order: `npm run format:check`, then
-   `npm run lint`.
+2. Run what the pull request check runs, with the commands `AGENTS.md` gives under "Local
+   Commands", in order: `npm run format:check`, `npm run lint`, `npm run stack:up`, then
+   `npm run test:github`, every test passing. Always finish with `npm run stack:down`, also after
+   a failure.
 3. A format check failure is the one thing fixed here: run `npm run format`, commit the result
    with the `commit` skill, push, and start the gate again.
-4. The gate does not run the suite. When the slice changes a check, a `wdio.*.conf.js` file,
-   `package.json` or `entrypoint.sh`, also run the suite against a running `waste-organisations`
-   with the command in "Local Commands" in `AGENTS.md` and the base URL from stage 1 (ask for it
-   if you do not have it), every test passing, and see each new or changed check fail where its
-   condition does not hold, with a message that names the URL (`AGENTS.md`, "The gate and what
-   "verified" means"). Stop the report server the run leaves behind. With no service to run
-   against, stop: the slice is not verified.
+4. When the slice adds or changes a check, also see it fail where its condition does not hold,
+   with a message that names the URL (`AGENTS.md`, "The gate and what "verified" means"): run
+   `npm run test:github` once more with the stack stopped. Keep which failing conditions you saw
+   and which the stack cannot produce, such as a `401` from the API gateway, for "How to test".
 5. Any other failure is a stop: name the failing tests or lint errors and quote the first error.
    Do not change code or checks to make it pass.
 6. On a pass, `record gate_sha <head>` with the full commit hash from `status`.
@@ -202,7 +198,8 @@ plan alone.
   non-generated changed lines against the size guide, counted as `doc/rules/git-workflow.md`
   says, and, when the spec has more than one slice, "Slice n of m". "How to test" must be
   followable without reading the code: fill Target, Command, Steps and "Not covered" from the
-  runs you made in stage 4, with what only a run from the CDP Portal after merge can confirm.
+  runs you made in stage 4, with what only a run from the CDP Portal after merge can confirm,
+  since the Compose stack has no API gateway.
   For a slice that changes no check, runner, image or configuration it is "No behaviour change:"
   and the reason.
   Tick a checklist line only when a stage gave you the evidence for it.
@@ -283,7 +280,7 @@ no log dumps, no plan contents.
 **Slice <n> of <m>, spec <NNNN> (<story>): ready for review**
 PR: <pr_url>
 - Build: ralph <phases that ran>, <n> commits, <files> files (+<adds>/-<dels>, <n> generated)
-- Checks: gate passed at <short sha> · suite <passed against the base URL | not needed> · CI passed · preflight fixed <n>, none left
+- Checks: gate and suite passed at <short sha> · CI passed · preflight fixed <n>, none left
 - Notes: <warnings, accepted findings, anything not verified; omit the line when there are none>
 - Next: <"slice <n+1> once this is merged: /slice-deliver spec <NNNN> slice <n+1>" | "last slice: the spec is complete when this merges">
 
@@ -314,8 +311,8 @@ draft pull request as ready or a stopped slice as delivered.
   still open, or recording a gate or verdict you did not see.
 - Fixing a failing check, a red gate or a `[NEEDS MANUAL FIX]` finding yourself. Formatting is the
   only fix this skill makes; `pr-preflight` makes its own under its own rules.
-- Recording the gate for a slice that changes a check when the suite was not run against a
-  running `waste-organisations`.
+- Recording the gate when the suite was not run against the Compose stack, or leaving the stack
+  running afterwards.
 - Rebasing, merging `main`, amending or force-pushing to tidy the branch, including bringing
   `main` into a stacked branch.
 - Choosing where the branch starts when the developer has a real choice, or creating and

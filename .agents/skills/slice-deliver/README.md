@@ -33,9 +33,10 @@ request, `pr-preflight` and marking it ready by hand. It does not replace the hu
 - **Dependencies are installed.** `npm ci` with the Node version in `.nvmrc`, and
   `npm run setup:husky` once per clone, so the gate and the pre-commit hook can run (see "Local
   Commands" in `AGENTS.md`).
-- **A running `waste-organisations`, when the slice changes a check.** The gate does not run the
-  suite. A slice that changes a check, the runner, `package.json` or `entrypoint.sh` is verified
-  only by a suite run, so have the base URL of a running service to hand; the skill asks for it.
+- **Docker is running and host port 8080 is free.** After the format check and the lint, the
+  skill runs the suite as the pull request check does: `npm run stack:up` starts the published
+  `waste-organisations` image and publishes it on port 8080. Anything else on that port stops
+  the stack from starting.
 - **The spec is committed and the tree is clean.** ralph refuses to plan over uncommitted changes
   in `specs/`.
 - **Know where the slice's branch should start.** The skill asks when there is a real choice: a
@@ -57,15 +58,16 @@ To skip the branch question, say it in the request: "... from main", "... on top
 
 ## What happens
 
-1. **Checks and branch.** Nothing is changed until the spec, the slice, `gh`, the installed
-   dependencies and the agent login are all in order. It then asks where the branch starts, if that is a real
+1. **Checks and branch.** Nothing is changed until the spec, the slice, `gh`, Docker, port 8080,
+   the installed dependencies and the agent login are all in order. It then asks where the branch starts, if that is a real
    choice, and makes the slice's branch.
 2. **Build.** `ralph auto` plans the slice, builds it one plan item per commit, reviews the result
    and fixes what the review found. It runs detached and logs to `.ralph/slice-deliver/ralph.log`;
    expect an hour or more.
-3. **Gate.** `npm run format:check`, then `npm run lint`, as `AGENTS.md` describes, and a suite
-   run against a running `waste-organisations` when the slice changes a check, the runner,
-   `package.json` or `entrypoint.sh`. Formatting is the only thing fixed here.
+3. **Gate.** `npm run format:check` and `npm run lint`, then the suite against the Compose stack
+   (`npm run stack:up`, `npm run test:github`, `npm run stack:down`), as the pull request check
+   runs them. A new or changed check is also seen to fail. Formatting is the only thing fixed
+   here.
 4. **Draft pull request**, titled and described from the template, the spec's slice and the diff.
 5. **pr-preflight**, which fixes the mechanical findings it has confirmed and reports the rest.
    The skill then updates the pull request description with the review focus.

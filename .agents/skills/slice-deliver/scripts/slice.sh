@@ -28,6 +28,7 @@ EXIT_FILE="$STATE_DIR/ralph.exit"
 AUTO_STATE_FILE=".ralph/auto-state"
 PLAN_FILE="IMPLEMENTATION_PLAN.md"
 RECORD_KEYS="gate_sha preflight_sha preflight_verdict done note"
+COMPOSE_SERVICE_PORT=8080
 
 die() {
     echo "error: $*" >&2
@@ -350,6 +351,10 @@ gate_tools_installed() {
     [[ -x node_modules/.bin/prettier && -x node_modules/.bin/eslint ]]
 }
 
+compose_service_running() {
+    [[ -n $(docker compose ps --status running -q waste-organisations 2> /dev/null || true) ]]
+}
+
 # The stage is derived from what is true now, never from what an earlier run
 # intended, so running the skill again always continues at the right place.
 compute_stage() {
@@ -390,7 +395,7 @@ compute_stage() {
 
 collect_blockers() {
     local tool
-    for tool in ralph gh jq yq node npm; do
+    for tool in ralph gh jq yq node npm docker nc; do
         have "$tool" || block "tools: '$tool' is not installed or not on PATH"
     done
 
@@ -432,6 +437,13 @@ collect_blockers() {
     fi
 
     gate_tools_installed || block "dependencies: Prettier or ESLint is missing from node_modules; run 'npm ci' (AGENTS.md, Local Commands)"
+    if have docker; then
+        if ! docker info > /dev/null 2>&1; then
+            block "docker: the Docker daemon is not running; the suite runs against the Compose stack"
+        elif have nc && nc -z 127.0.0.1 "$COMPOSE_SERVICE_PORT" 2> /dev/null && ! compose_service_running; then
+            block "port: something other than the Compose stack holds 127.0.0.1:$COMPOSE_SERVICE_PORT; the stack publishes waste-organisations there (AGENTS.md, Local Commands)"
+        fi
+    fi
 
     [[ ${behind_main:-0} -eq 0 ]] || warn "git: branch is $behind_main commit(s) behind origin/main"
     [[ ${ahead_of_main:-0} -ne 1 ]] || warn "git: one commit on the branch; a squash merge would take its subject, not the pull request title"
