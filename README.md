@@ -138,6 +138,8 @@ development standards adapted for this repo in [doc/rules](doc/rules/). Reusable
 
 - [spec-clarify](.agents/skills/spec-clarify/README.md): turn a Jira story into a spec in `specs/`, the first step
   of every story
+- [slice-deliver](.agents/skills/slice-deliver/README.md): build one slice of a spec and take it to a pull request
+  that is ready for review
 - [pr-preflight](.agents/skills/pr-preflight/README.md): check your own pull request before asking for review
 - [pr-review](.agents/skills/pr-review/README.md): review a colleague's pull request against its story and these
   rules
