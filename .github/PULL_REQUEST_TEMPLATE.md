@@ -6,6 +6,7 @@
 
 Jira: <!-- the ticket id, or "none" with the reason when the work has no Jira story -->
 Spec: <!-- specs/NNNN-<ticket-id>-slug.md, or "none" -->
+Size: <!-- N non-generated changed lines (added plus removed, without `package-lock.json`), against the guide of about 800. See "Keep the PR small" in doc/rules/git-workflow.md for the command -->
 
 ## What changed
 
@@ -31,6 +32,7 @@ Spec: <!-- specs/NNNN-<ticket-id>-slug.md, or "none" -->
 
 ## Checklist
 
+- [ ] Within the size guide of about 800 non-generated changed lines; a larger change is split by spec slice before review
 - [ ] Gate run locally: `npm run format:check` and `npm run lint`
 - [ ] Suite run against a running `waste-organisations` and every test passed, or this PR changes no check, runner, image or configuration
 - [ ] Each new or changed check was seen to fail, with a message that names the URL
