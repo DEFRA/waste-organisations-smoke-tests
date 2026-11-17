@@ -7,13 +7,15 @@ description: >
   priority, size. Writes specs/NNNN-REGEN-NNN-slug.md and nothing else; never implements and never
   edits a delivered spec. Use whenever asked to write, draft, refine or clarify a spec or story,
   for example "/spec-clarify REGEN-NNN ...", "/clarify", "write the spec for REGEN-NNN", "turn
-  this story into a spec", "refine this idea".
+  this story into a spec", "refine this idea". Every spec has a Work breakdown, one slice per
+  pull request, also when there is only one; work is never split into child specs.
 ---
 
 # Spec clarify
 
 This skill produces a spec in the format this repo already uses. The format reference is the
-spec in `specs/`: `specs/0001-REGEN-141-openapi-doc-smoke-tests.md`. Read it before writing.
+spec in `specs/`: `specs/0001-REGEN-141-openapi-doc-smoke-tests.md`. Read it before writing. It
+was written before the Work breakdown table, which every new spec has (phase 8).
 
 You are running an idea refinement workshop with the developer. The output is a spec that a
 reviewer can approve and that the Ralph build loop, or a developer, can implement without
@@ -117,10 +119,35 @@ Problem/Opportunity ("Why P1: ...").
 
 ### 8. Size
 
-Estimate the pull requests the work needs. A spec is one pull request when its non-generated
-change stays within the size guide in `doc/rules/git-workflow.md` and mixes no unrelated concerns
-(a runner or tooling change, new checks, documentation). If it needs more, say so and agree
-with the author how to split the work into smaller specs, one pull request each, before writing.
+Estimate the pull requests the work needs and write the Work breakdown table in every spec, also
+when the work is one pull request: the table then has one slice. The reader finds the number of
+pull requests in the same place in every spec, and "build slice 1 of spec NNNN" always works. A
+spec is one pull request when its non-generated change stays within the size guide in
+`doc/rules/git-workflow.md` and mixes no unrelated concerns (a runner or tooling change, new
+checks, documentation); say so, with the estimate, in a line above the table. If it needs more,
+slice it: the spec stays one file and is never split into child specs. Each slice is one pull
+request, built on its own and in order ("build slice 1 of spec NNNN"); when every slice is
+merged, the spec's development is complete. Write each slice to stand alone:
+
+- **One slice is still a table.** Its Work names what the pull request builds, as any slice does,
+  and its Verified by names the runs that show it and every acceptance criterion.
+- **Slice a pull request, not a task.** A slice has its own observable result and its own checks
+  or runs. Never a "README", "tests" or "run the suite" slice: the README table, the gate and the
+  suite run belong to every slice.
+- **Work says what the slice builds and where it stops.** Name the spec files under
+  `test/specs/`, the checks, the runner or image files, and the part of the Proposed Solution it
+  implements. Where a reader could expect more, say what is left to a later slice.
+- **Verified by is provable.** Name the run and the result it shows (the gate, the suite run
+  against a running `waste-organisations`, the check seen to fail), and the acceptance criteria
+  and edge cases the slice satisfies.
+- **Order is build order.** A slice may rely only on earlier slices, and every slice leaves main
+  shippable: nothing needs a later slice to pass the gate, to run on CDP or to keep an existing
+  check passing.
+- **Do not over-slice.** Split only for the size guide or for mixed concerns. Fold a slice with
+  nothing of its own to verify into its neighbour; prefer fewer, well-bounded slices to many small
+  ones, since each costs a review.
+- **Every acceptance criterion is covered by a slice.** Confirm the slices with the author before
+  writing them.
 
 ### 9. Write the spec
 
@@ -145,7 +172,17 @@ story). Use this structure, with the section headings exactly as written:
 ## Proposed Solution
 
 (the table of checks: request, credentials, expected; then bullets for the target host, the
-trigger, failure semantics and anything about the runner or image)
+trigger, failure semantics and anything about the runner or image; always end with
+"### Work breakdown", one slice per pull request, a single slice when the work is one pull
+request)
+
+### Work breakdown
+
+(one line: how many pull requests, and the estimate against the size guide)
+
+| Slice | Work                                            | Verified by                                          |
+| ----- | ----------------------------------------------- | ---------------------------------------------------- |
+| 1     | what the pull request builds and where it stops | the runs that show it, and the criteria it satisfies |
 
 ## Acceptance Criteria
 
@@ -172,16 +209,17 @@ Run `npm run format` so the tables match the formatter, then `npm run format:che
 
 ### 10. Present and confirm
 
-Show the author the type, priority, title, the table of checks, the acceptance criteria with the
-edge cases, and the open risks, and ask whether the spec says what they meant. Adjust until it
+Show the author the type, priority, title, the table of checks, the Work breakdown, the
+acceptance criteria with the edge cases, and the open risks, and ask whether the spec says what they meant. Adjust until it
 does.
 
 ### 11. Next steps
 
-Say which applies: the spec is one pull request and development can start; it is too big
-for one pull request and needs splitting into smaller specs; it needs a spike first; or an unknown blocks it and who can answer it. A spec
-can be reviewed as its own pull request before implementation starts; recommend that when
-the plan itself needs the team's agreement.
+Say which applies: the Work breakdown has one slice and development can start; it has several
+slices and development starts with slice 1; it needs a spike first; or an unknown blocks it and
+who can answer it. A spec can be reviewed as its own pull request before implementation starts;
+recommend that for anything larger than one slice, and when the plan itself needs the team's
+agreement.
 
 ## Do and do not
 
@@ -192,7 +230,8 @@ Do:
 - Name the earlier spec whenever a decision changes something it decided.
 - Record why a decision was made (for example why the public host and not the internal one), so
   the spec is a record, not just a plan.
-- Keep the spec within one pull request; split bigger work into smaller specs.
+- Write the Work breakdown in every spec: one slice when the work fits one pull request,
+  otherwise slices that each stand alone.
 
 Do not:
 

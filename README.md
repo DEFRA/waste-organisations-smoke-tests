@@ -137,7 +137,7 @@ development standards adapted for this repo in [doc/rules](doc/rules/). Reusable
 [.agents/skills](.agents/skills/) and work in Claude Code and Codex:
 
 - [spec-clarify](.agents/skills/spec-clarify/README.md): turn a Jira story into a spec in `specs/`, the first step
-  of every story
+  of every story; every spec has a Work breakdown, one pull request per slice
 - [slice-deliver](.agents/skills/slice-deliver/README.md): build one slice of a spec and take it to a pull request
   that is ready for review
 - [pr-preflight](.agents/skills/pr-preflight/README.md): check your own pull request before asking for review

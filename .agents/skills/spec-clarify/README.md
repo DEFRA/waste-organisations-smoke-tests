@@ -10,8 +10,8 @@ The agent-facing procedure is in [SKILL.md](SKILL.md); this file is for develope
 
 - A new story is ready for refinement and needs a spec before development.
 - A fault reached an environment unnoticed and the suite should have a check that catches it.
-- An idea is still vague and you want it shaped into something actionable, or found to be too
-  big for one spec.
+- An idea is still vague and you want it shaped into something actionable, or found to be an
+  epic whose stories each need their own spec.
 
 ## How to start it
 
@@ -33,10 +33,13 @@ you to paste what matters and will cite the story by its key.
 2. For each check it settles the request, the credentials sent, the status that passes and what
    counts as a failure, then the conditions that must fail the suite.
 3. It writes `specs/NNNN-REGEN-NNN-slug.md` with the standard sections: metadata table,
-   Problem/Opportunity, Proposed Solution, Acceptance Criteria with Edge cases, Out of Scope,
-   Notes.
+   Problem/Opportunity, Proposed Solution ending with the Work breakdown, Acceptance Criteria
+   with Edge cases, Out of Scope, Notes.
 4. It shows you the summary and adjusts until the spec says what you meant.
-5. It tells you whether the work fits one pull request or needs splitting into smaller specs.
+5. It tells you how many pull requests the work needs and writes them in the spec's "Work
+   breakdown" table, one slice each. Every spec has the table, with a single slice when the work
+   fits one pull request. With more than one, it agrees the slices with you first; the spec stays
+   one file.
 
 It never writes code, never touches another spec, and never edits a delivered spec; a change to
 something an earlier spec decided is recorded in the new spec, naming that spec.
@@ -45,11 +48,14 @@ something an earlier spec decided is recorded in the new spec, naming that spec.
 
 A spec shaped like the one already in `specs/`:
 [0001-REGEN-141-openapi-doc-smoke-tests.md](../../../specs/0001-REGEN-141-openapi-doc-smoke-tests.md).
-Its table of checks, its acceptance criteria and its edge cases are the pattern to follow.
+Its table of checks, its acceptance criteria and its edge cases are the pattern to follow. It
+was written before the Work breakdown table, which every new spec adds at the end of Proposed
+Solution.
 
 ## Afterwards
 
 - Open the spec as its own pull request when the team should review the plan before the code.
-- If the work needs more than one pull request, write one spec per pull request.
-- Start the Ralph loop or implement by hand; the review skills check the pull request against
-  the spec's acceptance criteria.
+- Build one slice of the spec's Work breakdown at a time, with
+  [slice-deliver](../slice-deliver/README.md) ("build slice 1 of spec NNNN") or by hand, and open
+  a pull request per slice. Development is complete when every slice is merged.
+- The review skills check each pull request against the spec's acceptance criteria.

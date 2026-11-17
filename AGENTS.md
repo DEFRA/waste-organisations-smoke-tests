@@ -18,7 +18,7 @@ The rules below are the always-applicable summary. The full standards, tailored 
 
 Agent-invocable procedures live in `.agents/skills/` in the open Agent Skills format (`SKILL.md`). Codex reads that directory natively; Claude Code reads the same skills through the `.claude/skills/` symlinks. When a task matches one of these skills, follow the skill rather than improvising:
 
-- `spec-clarify`: turn a Jira story, bug or idea into a spec in `specs/`, in the repo's format, by asking the author questions; the first step of every story.
+- `spec-clarify`: turn a Jira story, bug or idea into a spec in `specs/`, in the repo's format, by asking the author questions; the first step of every story. Every spec has a Work breakdown, one slice per pull request; work that needs more than one pull request is sliced there.
 - `slice-deliver`: deliver one slice of a spec's Work breakdown as a pull request ready for review: ralph build, the gate, a draft pull request, `pr-preflight`, CI. It stops and reports when a step fails or needs a decision, continues from that step when run again, and never merges or requests reviewers.
 - `commit`: stage and commit finished work as atomic commits with Conventional Commits messages.
 - `pr-review`: review a colleague's PR against the linked Jira story and these standards. Findings are reported for a human to act on; the AI never approves, requests changes, or comments.
@@ -142,7 +142,7 @@ The command exits `0` when every test passes and `1` when one fails. With neithe
 
 Specs live in `specs/` and are named `NNNN-TICKET-ID-slug.md`. A spec whose development is done (its story is delivered and the changes are merged) is a record of what was built and why. Never edit such a spec, not even its Notes, while doing new development or writing a new spec. When new work changes something an earlier spec decided, such as a check it introduced or a failure rule, record the change and its reason in the new spec, name the earlier spec it supersedes and in what, and leave the earlier spec as it is. Edit a spec only while its own story is still in progress; the `Status` row of its metadata table says which it is.
 
-A new spec is written with the `spec-clarify` skill, so it has the sections and the positive and negative acceptance criteria the team expects. A spec whose work would exceed the pull request size guide in `doc/rules/git-workflow.md`, or that mixes a runner or tooling change with new checks, is split into smaller specs before development starts, one pull request each. Each skill has a README for developers in its folder under `.agents/skills/`.
+A new spec is written with the `spec-clarify` skill, so it has the sections and the positive and negative acceptance criteria the team expects. A spec whose work would exceed the pull request size guide in `doc/rules/git-workflow.md`, or that mixes a runner or tooling change with new checks, stays one spec: `spec-clarify` slices it in the spec's "Work breakdown" table before development starts, one pull request per slice, built in order. Every spec has that table, with a single slice when the work is one pull request. Each skill has a README for developers in its folder under `.agents/skills/`.
 
 ## Commits And Pull Requests
 
