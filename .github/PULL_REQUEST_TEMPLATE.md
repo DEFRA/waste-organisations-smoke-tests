@@ -1,11 +1,11 @@
-<!-- Title: REGEN-NNN: Short summary (imperative, capitalised, 50 characters, no trailing period). No prefix when the work has no Jira story. See doc/rules/git-workflow.md. -->
+<!-- Title: <ticket-id>: Short summary (imperative, capitalised, 50 characters, no trailing period). No prefix when the work has no Jira story. See doc/rules/git-workflow.md. -->
 
 ## Why
 
 <!-- Why this change is needed and briefly what it does. Not a copy of the story. -->
 
-Jira: REGEN-NNN <!-- or "none" with the reason when the work has no Jira story -->
-Spec: specs/NNNN-REGEN-NNN-slug.md <!-- or "none" -->
+Jira: <!-- the ticket id, or "none" with the reason when the work has no Jira story -->
+Spec: <!-- specs/NNNN-<ticket-id>-slug.md, or "none" -->
 
 ## What changed
 

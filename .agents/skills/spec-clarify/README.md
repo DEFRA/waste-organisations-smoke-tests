@@ -15,11 +15,11 @@ The agent-facing procedure is in [SKILL.md](SKILL.md); this file is for develope
 
 ## How to start it
 
-| Tool        | How                                                                                      |
-| ----------- | ---------------------------------------------------------------------------------------- |
-| Claude Code | `/spec-clarify REGEN-NNN <one-line idea>`                                                |
-| Codex       | `$spec-clarify` (or pick it from `/skills`), then give the story key and one line        |
-| Either      | Ask in plain words: "write the spec for REGEN-NNN"; the skill loads from its description |
+| Tool        | How                                                                                          |
+| ----------- | -------------------------------------------------------------------------------------------- |
+| Claude Code | `/spec-clarify <ticket-id> <one-line idea>`                                                  |
+| Codex       | `$spec-clarify` (or pick it from `/skills`), then give the story key and one line            |
+| Either      | Ask in plain words: "write the spec for `<ticket-id>`"; the skill loads from its description |
 
 Have the Jira story text and its comments to hand. The agent cannot read Jira, so it will ask
 you to paste what matters and will cite the story by its key.
@@ -32,7 +32,7 @@ you to paste what matters and will cite the story by its key.
    becomes a risk or a next step in the spec.
 2. For each check it settles the request, the credentials sent, the status that passes and what
    counts as a failure, then the conditions that must fail the suite.
-3. It writes `specs/NNNN-REGEN-NNN-slug.md` with the standard sections: metadata table,
+3. It writes `specs/NNNN-<ticket-id>-slug.md` with the standard sections: metadata table,
    Problem/Opportunity, Proposed Solution ending with the Work breakdown, Acceptance Criteria
    with Edge cases, Out of Scope, Notes.
 4. It shows you the summary and adjusts until the spec says what you meant.

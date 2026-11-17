@@ -4,11 +4,12 @@ description: >
   Turn a Jira story, bug or rough idea for this smoke test suite into a spec in specs/, in the
   repo's spec format, by asking the author questions one topic at a time: problem, scope, the
   checks and their acceptance criteria with the conditions that must fail the suite, risks,
-  priority, size. Writes specs/NNNN-REGEN-NNN-slug.md and nothing else; never implements and never
-  edits a delivered spec. Use whenever asked to write, draft, refine or clarify a spec or story,
-  for example "/spec-clarify REGEN-NNN ...", "/clarify", "write the spec for REGEN-NNN", "turn
-  this story into a spec", "refine this idea". Every spec has a Work breakdown, one slice per
-  pull request, also when there is only one; work is never split into child specs.
+  priority, size. Writes one spec file in specs/, named with the story's ticket id, and nothing
+  else; never implements and never edits a delivered spec. Use whenever asked to write, draft,
+  refine or clarify a spec or story, for example "/spec-clarify ABC-123 ...", "/clarify", "write
+  the spec for ABC-123", "turn this story into a spec", "refine this idea". Every spec has a Work
+  breakdown, one slice per pull request, also when there is only one; work is never split into
+  child specs.
 ---
 
 # Spec clarify
@@ -23,7 +24,7 @@ asking the author what was meant.
 
 ## Usage
 
-`/spec-clarify REGEN-NNN <one-line idea>` in Claude Code, or `$spec-clarify` in Codex. Without
+`/spec-clarify <ticket-id> <one-line idea>` in Claude Code, or `$spec-clarify` in Codex. Without
 an argument, ask for the story key and a one-line description first. If the work has no Jira
 story, say so in the spec; never invent a key.
 
@@ -151,16 +152,16 @@ merged, the spec's development is complete. Write each slice to stand alone:
 
 ### 9. Write the spec
 
-Path: `specs/NNNN-REGEN-NNN-slug.md`, where `NNNN` is the next number after the highest in
+Path: `specs/NNNN-<ticket-id>-slug.md`, where `NNNN` is the next number after the highest in
 `specs/` and the slug comes from the story title (`specs/NNNN-slug.md` when the work has no Jira
 story). Use this structure, with the section headings exactly as written:
 
 ```markdown
-# NNNN – REGEN-NNN – Title
+# NNNN – <ticket-id> – Title
 
 | Field    | Value                                      |
 | -------- | ------------------------------------------ |
-| Ticket   | REGEN-NNN (or "none", with the reason)     |
+| Ticket   | <ticket-id> (or "none", with the reason)   |
 | Type     | Feature / Bug / Improvement / Spike / Task |
 | Priority | P0 (Critical) to P4 (Backlog)              |
 | Risk     | Low / Medium / High                        |
