@@ -18,8 +18,8 @@ Size: <!-- N non-generated changed lines (added plus removed, without `package-l
      Required for any change to a check, the runner, the image or configuration. For a docs-only
      or tooling PR, replace this section with "No behaviour change: <reason>". -->
 
-**Target:** <!-- The waste-organisations the suite was run against: a local instance and its base URL, and/or the CDP environment -->
-**Command:** <!-- For example `SERVICE_BASE_URL=<url> npm run test:local` -->
+**Target:** <!-- The waste-organisations the suite was run against: a local instance and its base URL, the Compose stack, and/or the CDP environment -->
+**Command:** <!-- For example `SERVICE_BASE_URL=<url> npm test`, or `npm run stack:up` then `npm run test:github` -->
 
 ### Steps
 

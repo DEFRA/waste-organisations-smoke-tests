@@ -6,7 +6,7 @@ Post-deployment smoke tests for the `waste-organisations` API, run from the CDP 
 
 The rules below are the always-applicable summary. The full standards, tailored to this repo, live in `doc/rules/`. **Read the relevant file before starting the matching kind of task**:
 
-- [javascript-nodejs.md](doc/rules/javascript-nodejs.md): writing any JavaScript; spec files, the WebdriverIO and Mocha runner; adding npm packages
+- [javascript-nodejs.md](doc/rules/javascript-nodejs.md): writing any JavaScript; spec files, the Mocha runner; adding npm packages
 - [common-coding.md](doc/rules/common-coding.md): readability, naming, comments, simplicity
 - [git-workflow.md](doc/rules/git-workflow.md): branches, commit messages, PR titles, the full PR process
 - [security-logging.md](doc/rules/security-logging.md): secure coding, credentials, what a failure message and a report may contain
@@ -29,9 +29,9 @@ Both review skills enforce scope discipline: AI-suggested changes must be in spe
 ## Language and framework
 
 - Vanilla JavaScript on Node.js, as ES modules (`"type": "module"`). No TypeScript, no type annotations, no `.ts` files.
-- The runner is WebdriverIO with the Mocha framework (`describe` and `it`), reporting to Allure. Spec files live under `test/specs/`.
-- A check that needs only an HTTP response uses Node's built-in `fetch` and `node:assert/strict`. Do not add an HTTP client or an assertion library for it, and do not drive the browser when a request proves the same thing.
-- `async`/`await` throughout. No fixed sleeps (`browser.pause`, `setTimeout`): a request carries its own timeout, a browser step waits on a condition.
+- The runner is Mocha (`describe` and `it`), configured in `.mocharc.json` and reporting to Allure through `allure-mocha`. Spec files live under `test/specs/`.
+- A check is a plain HTTP request: it uses Node's built-in `fetch` and `node:assert/strict`. Do not add an HTTP client or an assertion library for it. The suite has no browser tooling; bringing any back is a decision for a spec.
+- `async`/`await` throughout. No fixed sleeps (`setTimeout`): a request carries its own timeout.
 - The target host comes from `ENVIRONMENT` or `SERVICE_BASE_URL` (README, "Target host"). Never hard-code an environment's URL in a spec file.
 
 ## Code style
@@ -50,8 +50,9 @@ Both review skills enforce scope discipline: AI-suggested changes must be in spe
 
 ## The gate and what "verified" means
 
-- **The gate** is `npm run format:check` then `npm run lint`. The pre-commit hook and the `Run Pull Request Checks` workflow run exactly this, and nothing else.
-- The gate does not run the suite. A change to a check, to a `wdio.*.conf.js` file, to `package.json` or to `entrypoint.sh` is **verified** only when the suite has also been run against a running `waste-organisations` with `SERVICE_BASE_URL` and every test passed (commands below).
+- **The gate** is `npm run format:check` then `npm run lint`. The pre-commit hook runs exactly this, and so does the `Run Pull Request Checks` job of the pull request workflow.
+- The gate does not run the suite. A change to a check, to `.mocharc.json`, to `package.json` or to `entrypoint.sh` is **verified** only when the suite has also been run against a running `waste-organisations` and every test passed (commands below).
+- The pull request workflow also runs the suite, in its `Run Journey Tests` job, against the latest published `waste-organisations` image started with `compose.yml`. That stack has no API gateway, so a green pull request does not show that a check passes through the gateway.
 - A new or changed check is also seen to fail: run it where its condition does not hold and confirm that the suite fails and the message names the URL requested.
 - The run from the CDP Portal can only happen after merge, because the image is built on merge to `main`. Say in the PR what that first run still has to confirm.
 - Never weaken, delete or skip a check or an assertion to make a run pass. A failing check is reporting something about the environment; understand it first.
@@ -128,15 +129,29 @@ npm run format
 npm run lint:fix
 ```
 
-Run the suite against a running `waste-organisations`. `<url>` is the base URL of that service, for example `http://localhost:8080` when it runs locally on port 8080; start the service as its own repository describes. WebdriverIO starts a local Chrome for the run and downloads a driver the first time:
+Run the suite against a running `waste-organisations`. `<url>` is the base URL of that service, for example `http://localhost:8080` when it runs locally on port 8080:
 
 ```bash
-SERVICE_BASE_URL=<url> npm run test:local
+SERVICE_BASE_URL=<url> npm test
 ```
 
-The command exits `0` when every test passes and `1` when one fails. With neither `SERVICE_BASE_URL` nor `ENVIRONMENT` set it fails before any request is sent. After the tests, the local configuration generates the Allure report (this needs Java) and leaves a report server running after the command returns: stop that process when you have read the report.
+The command exits `0` when every test passes and `1` when one fails. With neither `SERVICE_BASE_URL` nor `ENVIRONMENT` set it fails before any request is sent. It is the same command `entrypoint.sh` runs on CDP. It writes `allure-results/`; `npm run report` builds the Allure report from them and needs a Java runtime.
 
-`npm test` is the command `entrypoint.sh` runs on CDP: it expects a remote chromedriver and the platform's environment variables, so it is not the local command.
+To run against the stack the pull request check uses, start it, run the suite and stop it. The stack is the latest published `waste-organisations` image with MongoDB and Postgres, published on port 8080; it needs Docker:
+
+```bash
+npm run stack:up
+```
+
+```bash
+npm run test:github
+```
+
+```bash
+npm run stack:down
+```
+
+`npm run stack:up` first fetches the service's Liquibase changelog into `.waste-organisations/`. The README ("Running on GitHub") gives the variables that choose the image tag and the changelog.
 
 ## Specs
 

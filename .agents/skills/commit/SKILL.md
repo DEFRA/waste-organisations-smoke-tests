@@ -81,7 +81,7 @@ Subject with short bulleted body (when the diff isn't self-explanatory):
 ```
 build(test): route node fetch through env proxy
 
-- set NODE_USE_ENV_PROXY on the wdio command
+- set NODE_USE_ENV_PROXY on the mocha command
 - keep the clean step outside the prefix
 ```
 

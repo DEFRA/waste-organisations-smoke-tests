@@ -46,16 +46,17 @@ otherwise work through them in order. The result must be the same either way.
   the gate, ran the suite against a running `waste-organisations`, made the
   request, in a throwaway worktree if needed) is `confirmed`; anything else is
   `from reading`. Never label a finding confirmed without having reproduced it.
-  A green `Run Pull Request Checks` confirms the format check and the lint only:
-  it does not run the suite.
+  A green `Run Pull Request Checks` confirms the format check and the lint only.
+  A green `Run Journey Tests` confirms that the suite passes against the Compose
+  stack, which has no API gateway. Neither shows that a check passes on CDP.
 - **No praise, no padding.** Do not list things the PR does well or pad thin
   results with nits. An empty findings list is a good outcome, not a failure.
 - **Prefer reviewing from the diff.** Only check out the branch if a question
   genuinely cannot be answered from `gh pr diff` (for example, you must run the
   suite to confirm a finding). If you do check out: note the current branch
   and any uncommitted changes first, use a throwaway worktree where possible,
-  stop any report server a local run left behind, and restore everything before
-  finishing. Verify with `git status`.
+  stop any Compose stack a local run started (`npm run stack:down`), and restore
+  everything before finishing. Verify with `git status`.
 
 ## Procedure
 
@@ -93,8 +94,8 @@ otherwise work through them in order. The result must be the same either way.
    | PR hygiene   | Commit message rules, `<ticket-id>: ` title and Jira story key when the work has a story, description matches the diff, "How to test" present and runnable by QA, the README table of checks updated with the check, PR within the size guide, no loop artefacts or report output committed                                                                                                                                                                                       | `doc/rules/git-workflow.md`                                                               |
    | spec         | For changes under `specs/`: the standard sections present (metadata table, Problem/Opportunity, Proposed Solution, Acceptance Criteria with Edge cases, Out of Scope, Notes), each check defined by request, credentials and expected result, the conditions that must fail the suite written down, the Ticket row a Jira key only, delivered specs untouched, a Work breakdown present (Slice, Work, Verified by), with more than one slice when the work exceeds the size guide | `AGENTS.md` ("Specs"), `.agents/skills/spec-clarify/SKILL.md`                             |
 
-   A change to the `Dockerfile`, `entrypoint.sh`, `bin/`, a `wdio.*.conf.js`
-   file or a workflow also falls under the quality lens with
+   A change to the `Dockerfile`, `entrypoint.sh`, `bin/`, `.mocharc.json`,
+   `compose.yml` or a workflow also falls under the quality lens with
    `doc/rules/containers.md` and `doc/rules/continuous-integration.md`: the CDP
    Portal contract still holds, and a deviation from the template is recorded.
 
@@ -185,8 +186,9 @@ the `Spec:` line.
 - Applying a standard to lines the PR never touched and calling it blocking.
 - Labelling a finding `confirmed` without having reproduced it, or claiming full
   coverage of files you skimmed.
-- Reading a green pull request check as proof that the suite passes.
+- Reading a green pull request check as proof that a check passes on CDP: the
+  Compose stack it runs against has no API gateway.
 - Padding the report with nits or praise to look thorough.
 - Trusting the PR description over the diff, or vice versa, without comparing.
-- Leaving a checked-out branch, worktree, stash or report server behind after
+- Leaving a checked-out branch, worktree, stash or Compose stack behind after
   the review.

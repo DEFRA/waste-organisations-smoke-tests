@@ -1,13 +1,13 @@
 # JavaScript and Node.js standards
 
-Adapted for this repo, a WebdriverIO and Mocha test suite, from the DEFRA [JavaScript standards](https://github.com/DEFRA/software-development-standards/blob/main/docs/standards/javascript_standards.md) and [Node.js standards](https://github.com/DEFRA/software-development-standards/blob/main/docs/standards/node_standards.md). The DEFRA rules for web servers and browser code (server framework, session state, front-end frameworks, progressive enhancement) have nothing to apply to here.
+Adapted for this repo, a Mocha test suite, from the DEFRA [JavaScript standards](https://github.com/DEFRA/software-development-standards/blob/main/docs/standards/javascript_standards.md) and [Node.js standards](https://github.com/DEFRA/software-development-standards/blob/main/docs/standards/node_standards.md). The DEFRA rules for web servers and browser code (server framework, session state, front-end frameworks, progressive enhancement) have nothing to apply to here.
 
 ## JavaScript
 
 - Use vanilla JavaScript. Do not use extensions to the language such as TypeScript without an approved exception: no `.ts` files, no type annotations, no JSDoc-driven type checking introduced as a workaround.
 - Use ES modules (this package is `"type": "module"`). CommonJS only where a dependency genuinely requires it.
 - Prefer `async`/`await` over callbacks and promise chains. Every promise in a test is awaited or returned; a floating promise lets a test pass before its assertion has run.
-- **Accepted deviation:** the DEFRA standard lints with neostandard. This repo keeps the ESLint flat configuration of the CDP journey test suite template (`eslint.config.js`: the ESLint recommended rules, `eslint-plugin-wdio` and Prettier), for consistency with the other CDP test suites. Do not change the linter or the Prettier configuration without a team decision, and do not disable a rule inline without a comment that says why.
+- **Accepted deviation:** the DEFRA standard lints with neostandard. This repo keeps the ESLint flat configuration that came with the CDP journey test suite template, without its WebdriverIO plugin (`eslint.config.js`: the ESLint recommended rules, the Node and Mocha globals, and Prettier), for consistency with the other CDP test suites. Do not change the linter or the Prettier configuration without a team decision, and do not disable a rule inline without a comment that says why.
 
 ## Node.js
 
@@ -33,9 +33,9 @@ Adapted for this repo, a WebdriverIO and Mocha test suite, from the DEFRA [JavaS
 
 ### Layout
 
-- Spec files live under `test/specs/`. Every WebdriverIO configuration picks them up with the same glob, so a file placed there runs everywhere; do not narrow the glob in one configuration only.
+- Spec files live under `test/specs/`. `.mocharc.json` picks them up with one glob, `test/specs/**/*.js`, so a file placed there runs everywhere: on a developer's machine, in the pull request check and on CDP. Do not narrow the glob.
 - One spec file per area of the service being checked, named for that area.
-- `wdio.conf.js` is the configuration CDP runs, through `npm test`. `wdio.local.conf.js` is for a developer's machine. A setting that changes what a check does or how it fails is the same in both.
+- `.mocharc.json` is the one runner configuration, and `npm test` is the one command that uses it, locally, in the pull request check and on CDP. A setting that changes what a check does or how it fails therefore applies everywhere.
 
 ### Mocha
 
@@ -53,11 +53,6 @@ Adapted for this repo, a WebdriverIO and Mocha test suite, from the DEFRA [JavaS
 - Assert with `node:assert/strict` and pass the message yourself, including the URL and the status received.
 - Build the URL from the base URL and the path in one place, and use that same value for the request and for the message.
 
-### Browser checks
+### No browser
 
-The current checks do not use the browser, although the runner starts a session. A check drives the browser only when what it proves cannot be seen in an HTTP response.
-
-- Use the WebdriverIO globals (`browser`, `$`, `$$`, `expect`) that the runner provides.
-- Wait on a condition (`waitForDisplayed`, `waitUntil`, an `expect` matcher that retries), never on time: no `browser.pause` and no `setTimeout`.
-- `browser.debug()` is never committed.
-- Select elements by a stable attribute or role, not by layout or generated class names.
+The suite has no browser tooling. Spec 0001 removed the WebdriverIO runner that came with the template, because every check is an HTTP request. A check that could only be made in a browser needs a spec that brings the tooling back; do not add it in passing.

@@ -50,7 +50,7 @@ in parallel; otherwise work through them in order.
   made) before you fix or report it. Tag anything you could not reproduce
   `from reading`. Never label a finding confirmed without having reproduced it.
 - **Say which verification ran.** The gate proves style only. A change to a
-  check, a `wdio.*.conf.js` file, `package.json` or `entrypoint.sh` also needs a
+  check, `.mocharc.json`, `package.json` or `entrypoint.sh` also needs a
   suite run against a running `waste-organisations`
   (`doc/rules/quality-assurance.md`, "Verified"). If no service is available,
   the report says the suite was not run; never imply that it was.
@@ -145,9 +145,10 @@ it needs a decision.
    `AGENTS.md`:
    - the gate, always: `npm run format:check`, then `npm run lint`;
    - a suite run against a running `waste-organisations`, when the fix touches a
-     check, a `wdio.*.conf.js` file, `package.json` or `entrypoint.sh`:
-     `SERVICE_BASE_URL=<url> npm run test:local`, every test passing. Ask the
-     author for the base URL; stop the report server the run leaves behind;
+     check, `.mocharc.json`, `package.json` or `entrypoint.sh`:
+     `SERVICE_BASE_URL=<url> npm test` with a base URL the author gives, or
+     `npm run stack:up`, `npm run test:github` and then `npm run stack:down`
+     against the Compose stack, every test passing;
    - a failing run, when the fix changes what a check asserts or reports: run it
      where the condition does not hold and confirm the message names the URL.
 

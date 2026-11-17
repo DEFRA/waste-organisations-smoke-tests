@@ -28,7 +28,6 @@ The suite's output is the console of the CDP run and the Allure report, which `b
 - A URL that would carry a credential or personal data in its path or query string is not written to a message as it is; a check must not need one.
 - Test titles, test data and report attachments carry no personal data and no secrets. Test data is synthetic: never a real organisation, address or person.
 - `console` calls are lint errors (`no-console`). Do not add a logging library; a check speaks through its title and its assertion message.
-- The CDP configuration takes a browser screenshot when a test fails. A check that drives the browser must not have a credential or personal data on screen at that point.
 
 ## GitHub security
 

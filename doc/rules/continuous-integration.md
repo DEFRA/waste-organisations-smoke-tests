@@ -6,11 +6,11 @@ Adapted for this repo from the DEFRA [continuous integration standards](https://
 
 The workflows are the source of truth; read them rather than rely on a list here. What matters when changing them:
 
-- `.github/workflows/check-pull-request.yml` is the pull request check. It runs the gate: the format check and the lint. It does not run the suite, so a green check says nothing about whether the checks pass against a service (see "Verified" in [quality-assurance.md](quality-assurance.md)).
+- `.github/workflows/check-pull-request.yml` is the pull request check. Its `Run Pull Request Checks` job runs the gate: the format check and the lint. Its `Run Journey Tests` job calls `.github/workflows/journey-tests.yml`, which starts the latest published `waste-organisations` image with `compose.yml` and runs the suite against it. GitHub runners cannot reach the CDP environments and that stack has no API gateway, so a green check does not show that the checks pass on CDP (see "Verified" in [quality-assurance.md](quality-assurance.md)).
 - `.github/workflows/publish.yml` builds and publishes the test suite image on every merge to `main` through Defra's `cdp-build-action`. The CDP Portal runs that image. Do not replace it with a bespoke build.
-- `.github/workflows/journey-tests.yml`, `run-journey-tests/action.yml` and `compose.yml` are the CDP journey test suite template's way of running a suite on a GitHub runner. They are kept as the template provides them and are not part of the gate: GitHub runners cannot reach the CDP environments.
+- `.github/workflows/journey-tests.yml`, `run-journey-tests/action.yml`, `compose.yml` and `bin/start-stack.sh` are how the suite runs on a GitHub runner and, with `npm run stack:up`, on a developer's machine. They began as the CDP journey test suite template's files and now start `waste-organisations` with MongoDB and Postgres, the Postgres schema applied by Liquibase from the service's changelog. They are not part of the gate.
 
-The local gate and the pull request check run the same two commands. A command added to one is added to the other in the same change.
+The pre-commit hook and the `Run Pull Request Checks` job run the same two commands. A command added to one is added to the other in the same change.
 
 ## Branch protection
 
@@ -45,8 +45,8 @@ A workflow declares the least `permissions` it needs. Write permissions and `id-
 The CDP Portal decides whether a run passed from what the container does, as the README describes under "Requirements of CDP Environment Tests". These must keep working through any change:
 
 - `entrypoint.sh` exits `0` when the suite passes and non-zero when it fails or when the report cannot be published.
-- The `onComplete` hook in `wdio.conf.js` writes the `FAILED` file when a test fails; `entrypoint.sh` reads it.
-- The Allure report is generated and published to S3 by `bin/publish-tests.sh`.
+- The `test` script in `package.json` writes the `FAILED` file when Mocha exits with a failure; `entrypoint.sh` reads it.
+- The `allure-mocha` reporter, set in `.mocharc.json`, writes `allure-results/`. The Allure report is generated from it and published to S3 by `bin/publish-tests.sh`.
 - Outbound requests on CDP go through the platform proxy. Node's `fetch` honours it only when `NODE_USE_ENV_PROXY=1` is set on the command that runs the tests, not on a command that precedes it.
 
 A change that touches any of these is verified by a run from the CDP Portal after merge, and its PR says so.

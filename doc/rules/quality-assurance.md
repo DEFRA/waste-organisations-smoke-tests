@@ -40,10 +40,10 @@ Every check is defined in its spec, and listed in the README table "What the sui
 
 A change is verified by what the repository really runs, in this order:
 
-1. **The gate**: `npm run format:check` and `npm run lint` pass. This is what the pre-commit hook and `.github/workflows/check-pull-request.yml` run. It proves style and nothing about behaviour.
-2. **The suite run**: for a change to a check, a `wdio.*.conf.js` file, `package.json` or `entrypoint.sh`, the suite is run against a running `waste-organisations` with `SERVICE_BASE_URL` and every test passes (command in "Local Commands" in `AGENTS.md`).
+1. **The gate**: `npm run format:check` and `npm run lint` pass. This is what the pre-commit hook and the `Run Pull Request Checks` job of `.github/workflows/check-pull-request.yml` run. It proves style and nothing about behaviour.
+2. **The suite run**: for a change to a check, `.mocharc.json`, `package.json` or `entrypoint.sh`, the suite is run against a running `waste-organisations` and every test passes: a service named by `SERVICE_BASE_URL`, or the Compose stack (commands in "Local Commands" in `AGENTS.md`). The pull request workflow runs the suite against that stack for every pull request, in its `Run Journey Tests` job. The stack has no API gateway.
 3. **The failing run**: a new or changed check is run where its condition does not hold, and the suite fails with a message that names the URL.
-4. **The CDP Portal run**: the image is built on merge to `main`, so the run from the CDP Portal against a real environment happens after merge. The PR's "How to test" section says what that run still has to confirm, and the story is not done until it has.
+4. **The CDP Portal run**: the image is built on merge to `main`, so the run from the CDP Portal against a real environment happens after merge. It is the only run that goes through the API gateway. The PR's "How to test" section says what that run still has to confirm, and the story is not done until it has.
 
 Do not describe a change as verified by a step that was not run. If no running `waste-organisations` was available, the PR says the suite was not run.
 
