@@ -1,0 +1,6 @@
+{
+  "spec": ["test/specs/**/*.js"],
+  "timeout": 60000,
+  "reporter": "allure-mocha",
+  "reporter-option": ["resultsDir=allure-results", "extraReporters=spec"]
+}

@@ -8,10 +8,10 @@ if (!process.env.SERVICE_BASE_URL && !process.env.ENVIRONMENT) {
   )
 }
 
-const baseUrl = (
+const baseUrl = new URL(
   process.env.SERVICE_BASE_URL ||
-  `https://waste-organisations.api.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`
-).replace(/\/+$/, '')
+    `https://waste-organisations.api.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`
+)
 
 async function fetchStatus(url) {
   try {
@@ -34,7 +34,7 @@ describe('API docs', () => {
       `/redoc/index.html?spec=${version}`
     ]) {
       it(`GET ${path} returns 200 without credentials`, async () => {
-        const url = `${baseUrl}${path}`
+        const url = new URL(path, baseUrl).href
         const status = await fetchStatus(url)
         assert.equal(status, 200, `Expected 200 from ${url} but got ${status}`)
       })
